@@ -98,19 +98,25 @@ public class Index {
 
 	private  void createDictionary(File file) throws IOException {
 	
+		
+		String normalizedStr=null;
+		
 		BufferedReader in = new BufferedReader(new FileReader(file));
 		String currentLine;
 			while ((currentLine = in.readLine()) != null) {
 					// Remove this line if you want words to be case sensitive
-					currentLine = currentLine.toLowerCase();
+					//currentLine = currentLine.toLowerCase(); --> sami: case sensitivity is handled in Normalizer
 					//Iterate through each word of the current line
 					//Delimit words based on whitespace, punctuation, and quotes
 					final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\w] \t\n\r\f.,;:!?'");
 						while (parser.hasMoreTokens()) {
 						 String currentWord = parser.nextToken();
 						 currentWord = tokenString(currentWord);
-						 termID.put(currentWord,docId);		
-						
+						 //sami start
+						 normalizedStr=Normalizer.normalize(currentWord, true, true, true); // TODO: need to pass parameters
+						 if (normalizedStr!=null);
+						 	termID.put(normalizedStr ,docId);	//old: termID.put(currentWord,docId);		
+						//sami end
 						}
 							
 			}
