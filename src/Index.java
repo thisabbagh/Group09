@@ -19,11 +19,13 @@ public class Index {
 	static final File INDEX_DIR = new File("../");
 	static final String DIR_TO_INDEX = "../20_newsgroups_subset";
 	public static int docCcount; 
-	public int docId;
+	public String docId;
 	//Mapping of String->Integer (word -> frequency)
 	final static  HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
 	
-	final static  Map <String,Integer> termID = new HashMap<String,Integer>();
+	final static  Map <String,String> bow = new HashMap<String,String>();
+
+    final static  Map <String,String> bg = new HashMap<String,String>();
 
 	public Index() {
 		listDoc = new ArrayList<Doc>();
@@ -35,22 +37,35 @@ public class Index {
 
 		Date start = new Date();
 		try {
-			docId = 1;
-				createTems(docDir);
+
+                createIndex(docDir);
 				Set<String> strinterm = dictionary.keySet();
 		
-			    BufferedWriter termdoc = new BufferedWriter(new FileWriter("../term.txt"));
+			    BufferedWriter bowDoc = new BufferedWriter(new FileWriter("../bow.txt"));
 		
-			    for (Map.Entry<String, Integer> entry : termID.entrySet()) {
-			    	termdoc.write( entry.getKey() +" "+ entry.getValue() + "  \n");   
+			    for (Map.Entry<String, String> entry : bow.entrySet()) {
+                    bowDoc.write( entry.getKey() +" "+ entry.getValue() + "  \n");
 			    	//System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 			    }
 			    
 				//for(String nome : strinterm){
 		//			termdoc.write(nome + "  \n");   
 		//		}  
-				termdoc.close();
-			
+                bowDoc.close();
+
+
+            BufferedWriter bgDoc = new BufferedWriter(new FileWriter("../bg.txt"));
+
+            for (Map.Entry<String, String> entry : bg.entrySet()) {
+                bgDoc.write( entry.getKey() +" "+ entry.getValue() + "  \n");
+                //System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+            }
+
+            //for(String nome : strinterm){
+            //			termdoc.write(nome + "  \n");
+            //		}
+            bgDoc.close();
+
 				Date end = new Date();
 				System.out.println(end.getTime() - start.getTime() + " total milliseconds");
 				
@@ -68,37 +83,39 @@ public class Index {
 		void remove();
 	}
 
-	public void createTems(File file) throws IOException {
+	public void createIndex(File file) throws IOException {
 		
 		if (file.canRead()) {
 		if (file.isDirectory()) {
 		String[] files = file.list();
 		if (files != null) {
-			for (int i = 0; i < files.length; i++) {		
-			createTems( new File(file, files[i]));
+			for (int i = 0; i < files.length; i++) {
+            createIndex(new File(file, files[i]));
 			}
 			}
 			} else {
-				
-			createDictionary(file);
-			System.out.println("adding " + file + " docID " + docId );
-			docId = docId + 1;
+	        docId = file.toString();
+            createTermsBOW(file);
+            createTermsBG(file);
+            System.out.println("adding " + file + " docID " + docId.substring(24));
+
 	}
 	}
 	}
 
 	public static String tokenString( String currentWord){
-		currentWord = currentWord.replaceAll("[^\\w]"," ");
-	 	currentWord = currentWord.replaceAll("[_]"," ");
-	 	currentWord = currentWord.replaceAll("[0-9]", " ");
+		currentWord = currentWord.replaceAll("[^\\w]","");
+	 	currentWord = currentWord.replaceAll("[_]","");
+	 	currentWord = currentWord.replaceAll("[0-9]", "");
 	 	currentWord.trim();
 	 	currentWord.split(currentWord);
 	return currentWord;
 	}
 
-	private  void createDictionary(File file) throws IOException {
-	
-		
+
+    //create index Bag of Words
+	private  void createTermsBOW(File file) throws IOException {
+
 		String normalizedStr=null;
 		
 		BufferedReader in = new BufferedReader(new FileReader(file));
@@ -115,13 +132,57 @@ public class Index {
 						 //sami start
 						 normalizedStr=Normalizer.normalize(currentWord, true, true, true); // TODO: need to pass parameters
 						 if (normalizedStr!=null);
-						 	termID.put(normalizedStr ,docId);	//old: termID.put(currentWord,docId);		
+						 	bow.put(normalizedStr ,docId.substring(24));	//old: termID.put(currentWord,docId);
 						//sami end
 						}
 							
 			}
 		in.close();
 	}
+
+
+    //create index Bi-Gram Index
+    private  void createTermsBG(File file) throws IOException {
+
+        String normalizedStr=null;
+
+        BufferedReader in = new BufferedReader(new FileReader(file));
+        String currentLine;
+        while ((currentLine = in.readLine()) != null) {
+            // Remove this line if you want words to be case sensitive
+            //currentLine = currentLine.toLowerCase(); --> sami: case sensitivity is handled in Normalizer
+            //Iterate through each word of the current line
+            //Delimit words based on whitespace, punctuation, and quotes
+            final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\w] \t\n\r\f.,;:!?'");
+            String twoterms = "";
+            String currentWord;
+            int count = 1;
+            while (parser.hasMoreTokens()) {
+                 if (count == 2){
+                currentWord = parser.nextToken();
+                currentWord = tokenString(currentWord);
+                twoterms = twoterms + " "+ currentWord;
+
+                //sami start
+                normalizedStr=Normalizer.normalize(twoterms, true, true, true); // TODO: need to pass parameters
+                if (normalizedStr!=null);
+                bg.put(normalizedStr ,docId.substring(24));	//old: termID.put(currentWord,docId);
+                //sami end
+                count = 1;
+                }
+                else {
+                      currentWord = parser.nextToken();
+                      currentWord = tokenString(currentWord);
+                      twoterms = currentWord;
+                     count = count + 1;
+
+                  }
+
+            }
+
+        }
+        in.close();
+    }
 
 
 }
