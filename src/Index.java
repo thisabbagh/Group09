@@ -13,7 +13,7 @@ public class Index {
 	
 	private static ArrayList<Doc> listDoc;
 	static final File INDEX_DIR = new File("../");
-	static final String DIR_TO_INDEX = "../../20_newsgroups_subset";
+	static final String DIR_TO_INDEX = "../20_newsgroups_subset";
 	public static int docCcount; 
 	public String docId;
 
