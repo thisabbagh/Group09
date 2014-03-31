@@ -62,12 +62,7 @@ public class Search {
         }
     }
 
-    public static void main(String[] args) {
-        String topicNumber = "topic1";
-        Search i = new Search(topicNumber);
 
-
-    }
 
     public static String tokenString( String currentWord){
         currentWord = currentWord.replaceAll("[^\\w]","");
@@ -89,18 +84,26 @@ public class Search {
                 String currentWord = parser.nextToken();
                 currentWord = tokenString(currentWord);
                 normalizedStr=Normalizer.normalize(currentWord, true, true, true);
-                Integer frequency = topic.get(normalizedStr);
-                if (frequency == null){
-                    frequency = 1;
-                    topic.put(normalizedStr, frequency);
-                } else
-                    topic.put(normalizedStr, frequency + 1);
-            }
 
+               if (normalizedStr != null && !normalizedStr.isEmpty() ){
+                Integer frequency = topic.get(normalizedStr);
+                    if (frequency == null){
+                        frequency = 1;
+                        topic.put(normalizedStr, frequency);
+                    } else
+                        topic.put(normalizedStr, frequency + 1);
+
+            }
+            }
         }
         in.close();
     }
 
 
+    public static void main(String[] args) {
+        String topicNumber = "topic1";
+        Search i = new Search(topicNumber);
+
+    }
 
 }

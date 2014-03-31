@@ -41,7 +41,7 @@ public class Index {
 			    BufferedWriter bowDoc = new BufferedWriter(new FileWriter("../bow.txt"));
 		
 			    for (Map.Entry<String, ArrayList<String>> entry : index.entrySet()) {
-                    bowDoc.write( entry.getKey() + " \n");
+                    bowDoc.write( entry.getKey() +" "+ entry.getValue() + "  \n");
 			  //  	System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
 			    }
 			    
@@ -129,9 +129,10 @@ public class Index {
 						 currentWord = tokenString(currentWord);
 						 //sami start
 						  normalizedStr=Normalizer.normalize(currentWord, true, true, true); // TODO: need to pass parameters
-                            if (normalizedStr!=null);
 
-                           if (index.containsKey(normalizedStr)){
+                            if (normalizedStr != null && !normalizedStr.isEmpty() ){
+
+                            if (index.containsKey(normalizedStr)){
 
                                ArrayList<String> temp =  index.get(normalizedStr);
                                temp.add(docId);
@@ -141,6 +142,7 @@ public class Index {
                                ArrayList<String> temp = new ArrayList<String>();
                                temp.add(docId);
                                 index.put(normalizedStr ,temp);
+                            }
                             }
                            // listDoc.add(docId);
 						 //	bow.put(normalizedStr ,docId.substring(24));	//old: termID.put(currentWord,docId);
