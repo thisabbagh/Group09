@@ -11,8 +11,7 @@ import java.util.*;
 
 public class Index {
 	
-	private static ArrayList<Doc> listDoc;
-	static final File INDEX_DIR = new File("../");
+	
 	static final String DIR_TO_INDEX = "../20_newsgroups_subset";
 	public static int docCcount; 
 	public String docId;
@@ -25,7 +24,7 @@ public class Index {
     final static  Map <String,ArrayList<String>> bg = new HashMap<String,ArrayList<String> >();
 
 	public Index() {
-		listDoc = new ArrayList<Doc>();
+	
 		final File docDir = new File(DIR_TO_INDEX);
 		if (!docDir.exists() || !docDir.canRead()) {
 			System.out.println("Document directory '"+ docDir.getAbsolutePath()+ "' does not exist or is not readable, please check the path");
