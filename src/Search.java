@@ -6,7 +6,16 @@ public class Search {
 
     static final String DIR_TO_INDEX = "../topics";
 
+    static final String DIR_TO_BOW_IVERTED_INDEX = "../bow_InvertedIndex.txt";
+    static final String DIR_TO_BG_IVERTED_INDEX = "../bg_InvertedIndex.txt";
+
     final static Map<String,Integer > topic = new HashMap<String,Integer >();
+
+
+    final static HashMap<String, List<Posting>> invertedIndex_bow = new HashMap<String, List<Posting>>();
+    final static HashMap<String, List<Posting>> invertedIndex_bg = new HashMap<String, List<Posting>>();
+
+
 
     public Search(String topicNumber) {
 
@@ -74,7 +83,6 @@ public class Search {
     }
 
     private static void createDictionary(File file) throws IOException {
-
         String normalizedStr=null;
         BufferedReader in = new BufferedReader(new FileReader(file));
         String currentLine;
@@ -100,10 +108,126 @@ public class Search {
     }
 
 
+
+    /*
+    	 * reads generated index files from file system.
+    	 * useful when we have already generated the file, therefore there is no need to parse all the collection again
+    	 */
+    public static void readInvertedIndexFile()
+    {
+        IndexStrategy strategy=IndexStrategy.BAG_OF_WORDS;
+
+        String fileName=(strategy== IndexStrategy.BAG_OF_WORDS)?DIR_TO_BOW_IVERTED_INDEX:DIR_TO_BG_IVERTED_INDEX;
+
+        try {
+            BufferedReader idxDoc = new BufferedReader(new FileReader(fileName));
+
+            String currentLine;
+            String retrievedTerm;
+            String possibleNextTerm;
+            List<Posting> postings = null;
+            while ((currentLine = idxDoc.readLine()) != null) {
+                retrievedTerm=null;
+                postings=new ArrayList<Posting>();
+                final StringTokenizer parser = new StringTokenizer(currentLine);
+                while(parser.hasMoreTokens()) {
+                    String currentWord = parser.nextToken();
+                    //System.out.println("currentWord: "+currentWord);
+                    if(retrievedTerm==null)
+                        if(strategy== IndexStrategy.BAG_OF_WORDS){
+                            retrievedTerm=currentWord;
+                            currentWord = parser.nextToken();
+                            //System.out.println("currentWord.next: "+currentWord);
+                        }
+                        else
+                        {
+                            retrievedTerm=currentWord;
+                            currentWord = parser.nextToken();
+                            if(!currentWord.startsWith("<")){
+                                retrievedTerm=retrievedTerm+" "+currentWord;
+                                currentWord = parser.nextToken();
+                            }
+
+                        }
+
+
+
+                    final StringTokenizer postingParser= new StringTokenizer(currentWord,"<,>");
+                    while (postingParser.hasMoreTokens()) {
+                        String retDoc = postingParser.nextToken();
+                        String retFreq = postingParser.nextToken();
+
+                        postings.add(new Posting(retDoc,Integer.parseInt(retFreq)));
+                        //System.out.println("doc: "+retDoc+" freq: "+retFreq);
+                    }
+                }
+
+                if(strategy==IndexStrategy.BAG_OF_WORDS)          {
+               //  System.out.println(retrievedTerm + " " + postings );
+                    invertedIndex_bow.put(retrievedTerm, postings);}
+
+                else
+                    invertedIndex_bg.put(retrievedTerm, postings);
+
+            }
+
+
+
+            idxDoc.close();
+            //System.out.println("printing invertedindex");
+            //printInvertedIndex(invertedIndex_bow);
+        }
+        catch (IOException e) {
+            System.out.println(" caught a " + e.getClass()
+                    + "\n with message: " + e.getMessage());
+        }
+
+    }
+
+    public static void score(){
+        //weight term query
+        int wtq = 0;
+
+        long score= 0;
+
+        long score_lenght = 0;
+        List<Posting> listPosting;
+        //For every term in the Topic
+        for (Map.Entry<String, Integer> entry : topic.entrySet()) {
+            //if the term is in the invertedIndex
+            if (invertedIndex_bow.containsKey(entry.getKey()))
+
+               wtq = entry.getValue();
+
+               listPosting =  invertedIndex_bow.get(entry.getKey());
+
+                for (Posting p : listPosting)
+                    {
+
+                        System.out.println("Frequency " + p.getFrequency() + " DocName " +p.getDocName());
+                        //score = term frequency in the document *  weight term query
+                        score = p.getFrequency() * wtq;
+                      //  System.out.println("score " + score);
+                       score_lenght = score_lenght + p.getFrequency() ;
+                        System.out.println("score_lenght " + score);
+
+
+                    }
+                       score = score/score_lenght;
+
+            System.out.println("SCORE " + score);
+        }
+
+
+    }
+
     public static void main(String[] args) {
         String topicNumber = "topic1";
         Search i = new Search(topicNumber);
 
+        readInvertedIndexFile();
+
+        score();
     }
 
 }
