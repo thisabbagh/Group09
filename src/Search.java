@@ -188,9 +188,9 @@ public class Search {
         //weight term query
         int wtq = 0;
 
-        long score= 0;
+        float score= 0;
 
-        long score_lenght = 0;
+        float score_lenght = 0;
         List<Posting> listPosting;
         //For every term in the Topic
         for (Map.Entry<String, Integer> entry : topic.entrySet()) {
@@ -201,23 +201,24 @@ public class Search {
 
                listPosting =  invertedIndex_bow.get(entry.getKey());
 
-                for (Posting p : listPosting)
-                    {
+                if(listPosting != null){
+                    for (Posting p : listPosting)
+                        {
 
-                        System.out.println("Frequency " + p.getFrequency() + " DocName " +p.getDocName());
-                        //score = term frequency in the document *  weight term query
-                        score = p.getFrequency() * wtq;
-                      //  System.out.println("score " + score);
-                       score_lenght = score_lenght + p.getFrequency() ;
-                        System.out.println("score_lenght " + score);
+                            //score = term frequency in the document *  weight term query
+                            score = p.getFrequency() * wtq;
+                           //System.out.println("score " + score);
+                           score_lenght = score_lenght + p.getFrequency() ;
+                         //   System.out.println("score_lenght " + score_lenght);
 
 
-                    }
-                       score = score/score_lenght;
+                        }
+                            score = score/score_lenght;
 
-            System.out.println("SCORE " + score);
+                System.out.println("SCORE " + score);
         }
 
+        }
 
     }
 
