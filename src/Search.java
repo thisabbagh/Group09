@@ -16,6 +16,8 @@ public class Search {
     final static HashMap<String, List<Posting>> invertedIndex_bg = new HashMap<String, List<Posting>>();
 
 
+    final static HashMap< Float, String > scoreMap = new HashMap<Float, String>();
+
 
     public Search(String topicNumber) {
 
@@ -187,15 +189,14 @@ public class Search {
     public static void score(){
         //weight term query
         int wtq = 0;
-
         float score= 0;
-
+        String docID = "";
         float score_lenght = 0;
         List<Posting> listPosting;
         //For every term in the Topic
         for (Map.Entry<String, Integer> entry : topic.entrySet()) {
             //if the term is in the invertedIndex
-            if (invertedIndex_bow.containsKey(entry.getKey()))
+            if (invertedIndex_bow.containsKey(entry.getKey()))   {
 
                wtq = entry.getValue();
 
@@ -205,20 +206,40 @@ public class Search {
                     for (Posting p : listPosting)
                         {
 
-                            //score = term frequency in the document *  weight term query
-                            score = p.getFrequency() * wtq;
-                           //System.out.println("score " + score);
+                           score = p.getFrequency() * wtq;
                            score_lenght = score_lenght + p.getFrequency() ;
-                         //   System.out.println("score_lenght " + score_lenght);
-
+                           docID = p.getDocName();
 
                         }
-                            score = score/score_lenght;
+                           score = score/score_lenght;
 
-                System.out.println("SCORE " + score);
+                scoreMap.put( score,docID);
         }
 
+        } 
         }
+
+    }
+
+    public static void printResult(String topic) {
+
+        int rank = 0;
+
+        Map< Float, String> treeMap = new TreeMap<Float, String>(scoreMap);
+
+        NavigableSet<Float> navig = ((TreeMap)treeMap ).descendingKeySet();
+
+        for (Iterator<Float> iter=navig.iterator();iter.hasNext();) {
+            rank = rank +1;
+            Float key = iter.next();
+
+
+            System.out.println(topic + " Q0 "+ treeMap.get(key) + " " + rank + " " +  String.format("%.7f",key)  + " group09_experiment1 "  );
+            if (rank >= 100)
+                break;
+        }
+
+
 
     }
 
@@ -229,6 +250,18 @@ public class Search {
         readInvertedIndexFile();
 
         score();
+
+
+        printResult(topicNumber);
+
+      //  for (String entry : scoreMap.keySet()) {
+       //     System.out.println("Score " +entry);
+
+       // }
+
     }
+
+
+
 
 }
