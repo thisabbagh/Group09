@@ -16,10 +16,10 @@ public class Search {
     final static HashMap<String, List<Posting>> invertedIndex_bg = new HashMap<String, List<Posting>>();
 
 
-    final static HashMap< Float, String > scoreMap = new HashMap<Float, String>();
+   static HashMap< Float, String > scoreMap = new HashMap<Float, String>();
 
 
-    public Search(String topicNumber) {
+    public Search(String topicNumber , IndexStrategy strategy) {
 
         final File docDir = new File(DIR_TO_INDEX);
         if (!docDir.exists() || !docDir.canRead()) {
@@ -27,23 +27,22 @@ public class Search {
             System.exit(1);
         }
 
-        Date start = new Date();
+
         try {
+            if (strategy.equals(IndexStrategy.BAG_OF_WORDS))
+            createQuery(docDir, topicNumber,strategy);
+            else
+                createQuery(docDir, topicNumber,strategy);
 
-            createIndex(docDir, topicNumber);
-
-            BufferedWriter topicDoc = new BufferedWriter(new FileWriter("../topic.txt"));
+            BufferedWriter topicDoc = new BufferedWriter(new FileWriter("../"+ topicNumber +".txt"));
 
             for (Map.Entry<String, Integer> entry : topic.entrySet()) {
                 topicDoc.write( entry.getKey() +" "+ entry.getValue() + "  \n");
                 //System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
             }
 
-
             topicDoc.close();
 
-            Date end = new Date();
-            System.out.println(end.getTime() - start.getTime() + " total milliseconds");
 
         } catch (IOException e) {
             System.out.println(" caught a " + e.getClass()
@@ -52,22 +51,24 @@ public class Search {
 
     }
 
-    public void createIndex(File file , String topicNumber) throws IOException {
+    public void createQuery(File file , String topicNumber, IndexStrategy strategy) throws IOException {
 
         if (file.canRead()) {
             if (file.isDirectory()) {
                 String[] files = file.list();
                 if (files != null) {
                     for (int i = 0; i < files.length; i++) {
-                        createIndex(new File(file, files[i]),topicNumber);
+                        createQuery(new File(file, files[i]), topicNumber,strategy);
                     }
                 }
             } else {
 
               if (topicNumber.equals(file.toString().substring(10))){
-                  createDictionary(file);
+                  createDictionary(file,strategy);
                 System.out.println("adding " + topicNumber );
                 }
+
+
 
             }
         }
@@ -84,17 +85,19 @@ public class Search {
         return currentWord;
     }
 
-    private static void createDictionary(File file) throws IOException {
+    private static void createDictionary(File file, IndexStrategy strategy) throws IOException {
+
         String normalizedStr=null;
         BufferedReader in = new BufferedReader(new FileReader(file));
         String currentLine;
         while ((currentLine = in.readLine()) != null) {
             final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\w] \t\n\r\f.,;:!?'");
+
+            if (strategy.equals(IndexStrategy.BAG_OF_WORDS)){
             while (parser.hasMoreTokens()) {
                 String currentWord = parser.nextToken();
                 currentWord = tokenString(currentWord);
                 normalizedStr=Normalizer.normalize(currentWord, true, true, true);
-
                if (normalizedStr != null && !normalizedStr.isEmpty() ){
                 Integer frequency = topic.get(normalizedStr);
                     if (frequency == null){
@@ -104,7 +107,44 @@ public class Search {
                         topic.put(normalizedStr, frequency + 1);
 
             }
+            }  }
+            else        {
+                String twoterms = "";
+                int count = 1;
+            while (parser.hasMoreTokens()) {
+                if (count == 2){
+                    String  currentWord = parser.nextToken();
+                    currentWord = tokenString(currentWord);
+                    twoterms = twoterms + " "+ currentWord;
+                    normalizedStr=Normalizer.normalize(twoterms, true, false, false); // TODO: need to pass parameters. and think obout how to implement stemming and stop word for bi-gram terms
+                    if (normalizedStr!=null&& normalizedStr!=""){
+                        Integer frequency = topic.get(normalizedStr);
+                        if (frequency == null){
+                            frequency = 1;
+                            topic.put(normalizedStr, frequency);
+                        } else
+                            topic.put(normalizedStr, frequency + 1);
+
+                    }
+                    count = 1;
+                        }
+                        else {
+                            String  currentWord = parser.nextToken();
+                            currentWord = tokenString(currentWord);
+                            twoterms = currentWord;
+                            count = count + 1;
+
+                }
+
             }
+            }
+
+
+
+
+
+
+
         }
         in.close();
     }
@@ -115,9 +155,9 @@ public class Search {
     	 * reads generated index files from file system.
     	 * useful when we have already generated the file, therefore there is no need to parse all the collection again
     	 */
-    public static void readInvertedIndexFile()
+    public static void readInvertedIndexFile(IndexStrategy strategy)
     {
-        IndexStrategy strategy=IndexStrategy.BAG_OF_WORDS;
+
 
         String fileName=(strategy== IndexStrategy.BAG_OF_WORDS)?DIR_TO_BOW_IVERTED_INDEX:DIR_TO_BG_IVERTED_INDEX;
 
@@ -186,7 +226,7 @@ public class Search {
 
     }
 
-    public static void score(){
+    public static void scoreBOW(){
         //weight term query
         int wtq = 0;
         float score= 0;
@@ -221,6 +261,41 @@ public class Search {
 
     }
 
+    public static void scoreBG(){
+        //weight term query
+        int wtq = 0;
+        float score= 0;
+        String docID = "";
+        float score_lenght = 0;
+        List<Posting> listPosting;
+        //For every term in the Topic
+        for (Map.Entry<String, Integer> entry : topic.entrySet()) {
+            //if the term is in the invertedIndex
+            if (invertedIndex_bg.containsKey(entry.getKey()))   {
+
+                wtq = entry.getValue();
+
+                listPosting =  invertedIndex_bg.get(entry.getKey());
+
+                if(listPosting != null){
+                    for (Posting p : listPosting)
+                    {
+
+                        score = p.getFrequency() * wtq;
+                        score_lenght = score_lenght + p.getFrequency() ;
+                        docID = p.getDocName();
+
+                    }
+                    score = score/score_lenght;
+
+                    scoreMap.put( score,docID);
+                }
+
+            }
+        }
+
+    }
+
     public static void printResult(String topic) {
 
         int rank = 0;
@@ -244,24 +319,104 @@ public class Search {
     }
 
     public static void main(String[] args) {
-        String topicNumber = "topic1";
-        Search i = new Search(topicNumber);
 
-        readInvertedIndexFile();
+        Date start = new Date();
 
-        score();
+        IndexStrategy strategy = IndexStrategy.BI_GRAM;
+
+        System.out.println("Please select the index type : ");
+
+        System.out.println("1. For Bag of Words");
+        System.out.println("2. For Bi Gram");
+        System.out.println("3. Exit");
+
+        Scanner scan = new Scanner(System.in);
+        int input = scan.nextInt();
+
+        //selects the option that the user input
+        switch (input)
+        {
+            case 1:
+                System.out.println("Index Bag of Words");
+                strategy = IndexStrategy.BAG_OF_WORDS;
+                readInvertedIndexFile(strategy);
+                break;
+            case 2:
+                System.out.println("Index Bi Gram");
+                strategy = IndexStrategy.BI_GRAM;
+                readInvertedIndexFile(strategy);
+            case 3:
+                System.out.println("Goodbye!");
+                System.exit(0);
+                break;
+            default:
+                System.out.println("Please enter a valid option.");
+                break;
+
+        }
+        System.out.println("-----------------------------------------------------");
+        System.out.println("Please write the topic and the topic number:");
+        System.out.println("For example topic1 or topic2:");
+        System.out.println("To finish type quit");
 
 
-        printResult(topicNumber);
+        scan = new Scanner(System.in);
 
-      //  for (String entry : scoreMap.keySet()) {
-       //     System.out.println("Score " +entry);
+        String topic = scan.next();
 
-       // }
+        while (!topic.equals("quit")){
+
+            Search i = new Search(topic,strategy);
+
+           if(checkTopic(topic)) {
+            if (strategy.equals(IndexStrategy.BAG_OF_WORDS))
+                 scoreBOW();
+               else
+                 scoreBG();
+
+            printResult(topic);
+           }
+
+            Date end = new Date();
+            System.out.println(end.getTime() - start.getTime() + " total milliseconds");
+
+            System.out.println("-----------------------------------------------------");
+            System.out.println("Please write the topic and the topic number:");
+            System.out.println("For example topic1 or topic2:");
+            System.out.println("To finish type quit");
+
+
+            scan = new Scanner(System.in);
+
+            topic = scan.next();
+
+
+        }
+
+
 
     }
 
+        public static boolean checkTopic(String topic){
+
+            if (topic.equals("topic1")||topic.equals("topic2")||
+            topic.equals("topic2")||topic.equals("topic3")||
+            topic.equals("topic4")||topic.equals("topic5")||
+            topic.equals("topic6")||topic.equals("topic7")||
+            topic.equals("topic8")||topic.equals("topic9") ||
+            topic.equals("topic10")||topic.equals("topic11") ||
+            topic.equals("topic12")||topic.equals("topic13")  ||
+            topic.equals("topic14")||topic.equals("topic15")  ||
+            topic.equals("topic16")||topic.equals("topic17") ||
+            topic.equals("topic18")||topic.equals("topic19") ||
+            topic.equals("topic20")
+
+            )
+             return true;
+             else
+                return false;
 
 
+        }
 
 }
