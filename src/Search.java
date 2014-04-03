@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 public class Search {
 
@@ -14,9 +15,9 @@ public class Search {
 
     static HashMap<String, List<Posting>> invertedIndex_bow = new HashMap<String, List<Posting>>();
     static HashMap<String, List<Posting>> invertedIndex_bg = new HashMap<String, List<Posting>>();
+     static HashMap<String, Integer> docLength = new HashMap<String, Integer>();
 
-
-   static HashMap< Float, String > scoreMap = new HashMap<Float, String>();
+   static HashMap< String, Float > scoreMap = new HashMap< String, Float >();
 
 
     public Search(String topicNumber , IndexStrategy strategy) {
@@ -91,13 +92,13 @@ public class Search {
         BufferedReader in = new BufferedReader(new FileReader(file));
         String currentLine;
         while ((currentLine = in.readLine()) != null) {
-            final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\w] \t\n\r\f.,;:!?'");
+            final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\] \t\n\r\f.,;:!?'");
 
             if (strategy.equals(IndexStrategy.BAG_OF_WORDS)){
             while (parser.hasMoreTokens()) {
                 String currentWord = parser.nextToken();
                 currentWord = tokenString(currentWord);
-                normalizedStr=Normalizer.normalize(currentWord, true, true, true);
+                normalizedStr=Normalizer.normalize(currentWord, true, true, true);//TODO
                if (normalizedStr != null && !normalizedStr.isEmpty() ){
                 Integer frequency = topicMap.get(normalizedStr);
                     if (frequency == null){
@@ -152,8 +153,8 @@ public class Search {
     	 */
     public static void readInvertedIndexFile(IndexStrategy strategy)
     {
-
-
+    	readDocsLengthFile();
+    	
         String fileName=(strategy== IndexStrategy.BAG_OF_WORDS)?DIR_TO_BOW_IVERTED_INDEX:DIR_TO_BG_IVERTED_INDEX;
 
         try {
@@ -221,13 +222,17 @@ public class Search {
 
     }
 
+    /* computing cosine score */
     public static void scoreBOW(){
         //weight term query
         int wtq = 0;
         float score = 0;
         String docID = "";
-        float score_lenght = 0;
         List<Posting> listPosting;
+
+        
+         HashMap< String, Float > DocScores = new HashMap< String, Float >();
+         
         //For every term in the Topic
         for (Map.Entry<String, Integer> entry : topicMap.entrySet()) {
             //if the term is in the invertedIndex
@@ -241,56 +246,73 @@ public class Search {
                     for (Posting p : listPosting)
                         {
 
-                           score = p.getFrequency() * wtq;
+                    	docID=p.getDocName();
+                    	
+                    	if(!scoreMap.containsKey(docID))
+                    	{
+                    		scoreMap.put(docID, (float) 0.0);
+                    		
+                    	}
+                    	score= scoreMap.get(docID)+(p.getFrequency() * wtq); //previous score of doc + new score
+                    	scoreMap.put(docID,score);
+                    	
+                        }         
 
-                           score_lenght = score_lenght + p.getFrequency() ;
-                           docID = p.getDocName();
-
-                        }
-                           score = score/score_lenght;
-
-                scoreMap.put( score,docID);
-                score_lenght = 0;
+                	}
+            }
+            
         }
+            	for (String doc : scoreMap.keySet()){                    
+            		scoreMap.put(doc, (Float)scoreMap.get(doc)/docLength.get(doc));
+            }
 
-        }
-
-        }
+        
 
     }
-
+    
+    /* computing cosine score */
     public static void scoreBG(){
         //weight term query
-        int wtq = 0;
-        float score= 0;
-        String docID = "";
-        float score_lenght = 0;
-        List<Posting> listPosting;
-        //For every term in the Topic
-        for (Map.Entry<String, Integer> entry : topicMap.entrySet()) {
-            //if the term is in the invertedIndex
-            if (invertedIndex_bg.containsKey(entry.getKey()))   {
+    	   int wtq = 0;
+           float score = 0;
+           String docID = "";
+           List<Posting> listPosting;
 
-                wtq = entry.getValue();
+           
+            HashMap< String, Float > DocScores = new HashMap< String, Float >();
+            
+           //For every term in the Topic
+           for (Map.Entry<String, Integer> entry : topicMap.entrySet()) {
+               //if the term is in the invertedIndex
+               if (invertedIndex_bg.containsKey(entry.getKey()))   {
 
-                listPosting =  invertedIndex_bg.get(entry.getKey());
+                  wtq = entry.getValue();
 
-                if(listPosting != null){
-                    for (Posting p : listPosting)
-                    {
+                  listPosting =  invertedIndex_bg.get(entry.getKey());
 
-                        score = p.getFrequency() * wtq;
-                        score_lenght = score_lenght + p.getFrequency() ;
-                        docID = p.getDocName();
+                   if(listPosting != null){
+                       for (Posting p : listPosting)
+                           {
 
-                    }
-                    score = score/score_lenght;
+                       	docID=p.getDocName();
+                       	
+                       	if(!scoreMap.containsKey(docID))
+                       	{
+                       		scoreMap.put(docID, (float) 0.0);
+                       		
+                       	}
+                       	score= scoreMap.get(docID)+(p.getFrequency() * wtq); //previous score of doc + new score
+                       	scoreMap.put(docID,score);
+                       	
+                           }         
 
-                    scoreMap.put(score,docID);
-                }
-
-            }
-        }
+                   	}
+               }
+               
+           }
+               	for (String doc : scoreMap.keySet()){                    
+               		scoreMap.put(doc, (Float)scoreMap.get(doc)/docLength.get(doc));
+               }
 
     }
 
@@ -298,20 +320,15 @@ public class Search {
 
         int rank = 0;
 
-        Map< Float, String> treeMap = new TreeMap<Float, String>(scoreMap);
+        List<Entry<String, Float>> sortedRes= entriesSortedByValuesDesc(scoreMap);
 
-        NavigableSet<Float> navig = ((TreeMap)treeMap ).descendingKeySet();
-
-        for (Iterator<Float> iter=navig.iterator();iter.hasNext();) {
-            rank = rank +1;
-            Float key = iter.next();
-
-
-            System.out.println(topic + " Q0 "+ treeMap.get(key) + " " + rank + " " +  String.format("%.7f",key)  + " group09_experiment1 "  );
-            if (rank >= 100)
-                break;
-        }
-
+		for (int i = 0; i < sortedRes.size(); i++) {
+			rank = rank +1;
+			Entry<String,Float> e=sortedRes.get(i);
+			System.out.println(topic + " Q0 "+ e.getKey() + " " + rank + " " +  String.format("%.7f",e.getValue())  + " group09_experiment1 "  );
+		    if (i==99) //returning subset of 100 results
+		    	break;
+				}
 
 
     }
@@ -343,6 +360,7 @@ public class Search {
                 System.out.println("Index Bi Gram");
                 strategy = IndexStrategy.BI_GRAM;
                 readInvertedIndexFile(strategy);
+                break;
             case 3:
                 System.out.println("Goodbye!");
                 System.exit(0);
@@ -374,7 +392,7 @@ public class Search {
 
                 printResult(topic);
                topicMap = new HashMap<String,Integer >();
-               scoreMap = new HashMap<Float, String>();
+               scoreMap = new HashMap<String, Float>();
            }
 
             Date end = new Date();
@@ -418,5 +436,57 @@ public class Search {
 
 
         }
+        
+        
+        public static void readDocsLengthFile()
+        {
+
+            try {
+                BufferedReader idxDoc = new BufferedReader(new FileReader("../docsLength.txt"));
+
+                String currentLine;
+                String retrievedTerm;
+                String possibleNextTerm;
+                List<Posting> postings = null;
+                while ((currentLine = idxDoc.readLine()) != null) {
+
+                    final StringTokenizer parser = new StringTokenizer(currentLine);
+                    while(parser.hasMoreTokens()) {
+                        docLength.put(parser.nextToken(), Integer.parseInt(parser.nextToken()));
+
+                    }
+                }
+            
+
+            idxDoc.close();
+        }
+        catch (IOException e) {
+            System.out.println(" caught a " + e.getClass()
+                    + "\n with message: " + e.getMessage());
+        }
+           /* System.out.println("reading docsLength list to memory...");
+            for(Entry<String, Integer> e: docLength.entrySet())
+            	System.out.println(e.getKey()+" "+e.getValue());*/
+        }
+        
+        
+    
+        
+        static <K,V extends Comparable<? super V>> 
+        List<Entry<K, V>> entriesSortedByValuesDesc(Map<K,V> map) {
+
+List<Entry<K,V>> sortedEntries = new ArrayList<Entry<K,V>>(map.entrySet());
+
+Collections.sort(sortedEntries, 
+        new Comparator<Entry<K,V>>() {
+            @Override
+            public int compare(Entry<K,V> e1, Entry<K,V> e2) {
+                return e2.getValue().compareTo(e1.getValue());
+            }
+        }
+);
+
+return sortedEntries;
+}
 
 }

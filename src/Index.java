@@ -27,6 +27,7 @@ public class Index {
 
     final static HashMap<String, List<Posting>> invertedIndex_bow = new HashMap<String, List<Posting>>();
     final static HashMap<String, List<Posting>> invertedIndex_bg = new HashMap<String, List<Posting>>();
+    final static HashMap<String, Integer> docLength = new HashMap<String, Integer>();
 
     private IndexStrategy strategy;
 	public Index(IndexStrategy strg) {
@@ -40,7 +41,7 @@ public class Index {
 		}
 
        Date start = new Date();
-            //TODO this part does not work properly. because there are still some empty terms in vocabulary. need to remove those first..
+            
             File indexFile=(strategy== IndexStrategy.BAG_OF_WORDS)?new File(DIR_TO_BOW_IVERTED_INDEX):new File(DIR_TO_BG_IVERTED_INDEX) ;
             if(indexFile.exists())
             {
@@ -61,7 +62,8 @@ public class Index {
                 else
                 	saveInvertedIndex( DIR_TO_BG_IVERTED_INDEX);
 
-				
+                saveDocsLength();
+                
 				} catch (IOException e) {
 				System.out.println(" caught a " + e.getClass()
 				+ "\n with message: " + e.getMessage());
@@ -118,10 +120,17 @@ public class Index {
 						 String currentWord = parser.nextToken();
 						 currentWord = tokenString(currentWord);
 
+					 		if(!docLength.containsKey(docId.substring(24)))
+					 			docLength.put(docId.substring(24),1);
+					 		else
+					 			docLength.put(docId.substring(24),docLength.get(docId.substring(24))+1);
+						 
 						 normalizedStr=Normalizer.normalize(currentWord, true, true, true); // TODO: need to pass parameters
 						 if (normalizedStr!=null && normalizedStr!="" ){
 						 		addToBowInvertedIndex(normalizedStr ,docId.substring(24));	
 						 		System.out.println(normalizedStr +"  "+docId.substring(24));
+						 		
+
 						 		
 						 }
 
@@ -151,6 +160,11 @@ public class Index {
                 currentWord = tokenString(currentWord);
                 twoterms = twoterms + " "+ currentWord;
 
+		 		if(!docLength.containsKey(docId.substring(24)))
+		 			docLength.put(docId.substring(24),1);
+		 		else
+		 			docLength.put(docId.substring(24),docLength.get(docId.substring(24))+1);
+                
                 normalizedStr=Normalizer.normalize(twoterms, true, false, false); // TODO: need to pass parameters. and think obout how to implement stemming and stop word for bi-gram terms
                 if (normalizedStr!=null&& normalizedStr!=""){
                 	addToBgInvertedIndex(normalizedStr ,docId.substring(24));
@@ -380,6 +394,26 @@ public class Index {
 			    }
 			    
        
+    	}
+    	
+    	
+    	public void saveDocsLength(){
+    		
+    		  try {
+    		 BufferedWriter bowDoc = new BufferedWriter(new FileWriter("../docsLength.txt"));
+    			
+			    for (Entry<String, Integer> entry : docLength.entrySet()) {
+					bowDoc.write( entry.getKey() +" "+ entry.getValue());
+					bowDoc.write("\n");
+			    }
+			    
+			    bowDoc.close();
+			    
+    			} catch (IOException e) {
+    				System.out.println(" caught a " + e.getClass()
+							+ "\n with message: " + e.getMessage());
+				}
+             
     	}
     
 
