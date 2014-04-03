@@ -65,7 +65,7 @@ public class Search {
 
               if (topicNumber.equals(file.toString().substring(10))){
                   createDictionary(file,strategy);
-                System.out.println("adding " + topicNumber );
+                  System.out.println("adding " + topicNumber );
                 }
 
 
@@ -138,11 +138,6 @@ public class Search {
 
             }
             }
-
-
-
-
-
 
 
         }
@@ -252,8 +247,6 @@ public class Search {
                            docID = p.getDocName();
 
                         }
-                    System.out.println("Score " + score);
-                    System.out.println("Score Lengt" + score_lenght);
                            score = score/score_lenght;
 
                 scoreMap.put( score,docID);
