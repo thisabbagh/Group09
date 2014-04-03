@@ -251,12 +251,16 @@ public class Search {
                            docID = p.getDocName();
 
                         }
+                    System.out.println("Score " + score);
+                    System.out.println("Score Lengt" + score_lenght);
                            score = score/score_lenght;
 
                 scoreMap.put( score,docID);
+                score_lenght = 0;
         }
 
-        } 
+        }
+
         }
 
     }
@@ -288,7 +292,7 @@ public class Search {
                     }
                     score = score/score_lenght;
 
-                    scoreMap.put( score,docID);
+                    scoreMap.put(score,docID);
                 }
 
             }
