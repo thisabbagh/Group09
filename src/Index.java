@@ -11,29 +11,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
 
 public class Index {
-	
-	private static ArrayList<Doc> listDoc;
-	static final File INDEX_DIR = new File("../");
+
+
 	static final String DIR_TO_INDEX = "../20_newsgroups_subset";
-	
 	static final String DIR_TO_BOW_IVERTED_INDEX = "../bow_InvertedIndex.txt";
 	static final String DIR_TO_BG_IVERTED_INDEX = "../bg_InvertedIndex.txt";
-	public static int docCcount; 
-	public String docId;
-	//Mapping of String->Integer (word -> frequency)
-	final static  HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
-	
-	final static  Map <String,String> bow = new HashMap<String,String>();
 
-    final static  Map <String,String> bg = new HashMap<String,String>();
-   
-    
+	public String docId;
+
+
     final static HashMap<String, List<Posting>> invertedIndex_bow = new HashMap<String, List<Posting>>();
     final static HashMap<String, List<Posting>> invertedIndex_bg = new HashMap<String, List<Posting>>();
 
@@ -41,27 +32,26 @@ public class Index {
 	public Index(IndexStrategy strg) {
 		
 		strategy=strg;
-		
-		listDoc = new ArrayList<Doc>();
+
 		final File docDir = new File(DIR_TO_INDEX);
 		if (!docDir.exists() || !docDir.canRead()) {
 			System.out.println("Document directory '"+ docDir.getAbsolutePath()+ "' does not exist or is not readable, please check the path");
 			System.exit(1);
 		}
 
-		Date start = new Date();
-		//TODO this part does not work properly. because there are still some empty terms in vocabulary. need to remove those first..
-		File indexFile=(strategy== IndexStrategy.BAG_OF_WORDS)?new File(DIR_TO_BOW_IVERTED_INDEX):new File(DIR_TO_BG_IVERTED_INDEX) ;
-		if(indexFile.exists())
-		{
-			System.out.println("The inverted index file already exists on file system. reading index from file ...");// to be more efficient as it is requested in assignment spec.
-			readInvertedIndexFile();
-			if(strategy== IndexStrategy.BAG_OF_WORDS)
-				printInvertedIndex(invertedIndex_bow);
-			else
-				printInvertedIndex(invertedIndex_bg);
-		}
-		else{
+       Date start = new Date();
+            //TODO this part does not work properly. because there are still some empty terms in vocabulary. need to remove those first..
+            File indexFile=(strategy== IndexStrategy.BAG_OF_WORDS)?new File(DIR_TO_BOW_IVERTED_INDEX):new File(DIR_TO_BG_IVERTED_INDEX) ;
+            if(indexFile.exists())
+            {
+                System.out.println("The inverted index file already exists on file system. reading index from file ...");// to be more efficient as it is requested in assignment spec.
+                readInvertedIndexFile();
+                if(strategy== IndexStrategy.BAG_OF_WORDS)
+                    printInvertedIndex(invertedIndex_bow);
+                else
+                    printInvertedIndex(invertedIndex_bg);
+            }
+            else{
 			
 		try {
                 createIndex(docDir);
@@ -71,36 +61,6 @@ public class Index {
                 else
                 	saveInvertedIndex( DIR_TO_BG_IVERTED_INDEX);
 
-
-					
-				Set<String> strinterm = dictionary.keySet();
-		
-			    BufferedWriter bowDoc = new BufferedWriter(new FileWriter("../bow.txt"));
-		
-			    for (Map.Entry<String, String> entry : bow.entrySet()) {
-                    bowDoc.write( entry.getKey() +" "+ entry.getValue() + "  \n");
-			    	//System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-			    }
-			    
-				//for(String nome : strinterm){
-		//			termdoc.write(nome + "  \n");   
-		//		}  
-                bowDoc.close();
-
-
-            BufferedWriter bgDoc = new BufferedWriter(new FileWriter("../bg.txt"));
-
-            for (Map.Entry<String, String> entry : bg.entrySet()) {
-                bgDoc.write( entry.getKey() +" "+ entry.getValue() + "  \n");
-                //System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-            }
-
-            //for(String nome : strinterm){
-            //			termdoc.write(nome + "  \n");
-            //		}
-            bgDoc.close();
-
-				
 				
 				} catch (IOException e) {
 				System.out.println(" caught a " + e.getClass()
@@ -110,13 +70,6 @@ public class Index {
 		Date end = new Date();
 		System.out.println(end.getTime() - start.getTime() + " total milliseconds");
 		}
-
-
-	public interface Iterator{
-		boolean hasNext();
-		Object next();
-		void remove();
-	}
 
 	public void createIndex(File file) throws IOException {
 		
@@ -135,8 +88,6 @@ public class Index {
 	        	createTermsBOW(file);
 	        else
 	        	createTermsBG(file);
-	        
-          //  System.out.println("adding " + file + " docID " + docId.substring(24)); //****************
 
 
 	}
@@ -161,23 +112,19 @@ public class Index {
 		BufferedReader in = new BufferedReader(new FileReader(file));
 		String currentLine;
 			while ((currentLine = in.readLine()) != null) {
-					// Remove this line if you want words to be case sensitive
-					//currentLine = currentLine.toLowerCase(); --> sami: case sensitivity is handled in Normalizer
-					//Iterate through each word of the current line
 					//Delimit words based on whitespace, punctuation, and quotes
 					final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\] \t\n\r\f.,;:!?'"); //sami: I removed w from [^\\w]. because what it does is that it splits based on letter 'w' which is not the thing that you meant, right?
 						while (parser.hasMoreTokens()) {
 						 String currentWord = parser.nextToken();
 						 currentWord = tokenString(currentWord);
-						 //sami start
+
 						 normalizedStr=Normalizer.normalize(currentWord, true, true, true); // TODO: need to pass parameters
 						 if (normalizedStr!=null && normalizedStr!="" ){
-						 		bow.put(normalizedStr ,docId.substring(24));	//old: termID.put(currentWord,docId);
 						 		addToBowInvertedIndex(normalizedStr ,docId.substring(24));	
 						 		System.out.println(normalizedStr +"  "+docId.substring(24));
 						 		
 						 }
-						//sami end
+
 						}
 							
 			}
@@ -193,9 +140,6 @@ public class Index {
         BufferedReader in = new BufferedReader(new FileReader(file));
         String currentLine;
         while ((currentLine = in.readLine()) != null) {
-            // Remove this line if you want words to be case sensitive
-            //currentLine = currentLine.toLowerCase(); --> sami: case sensitivity is handled in Normalizer
-            //Iterate through each word of the current line
             //Delimit words based on whitespace, punctuation, and quotes
             final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\] \t\n\r\f.,;:!?'");
             String twoterms = "";
@@ -207,15 +151,13 @@ public class Index {
                 currentWord = tokenString(currentWord);
                 twoterms = twoterms + " "+ currentWord;
 
-                //sami start
                 normalizedStr=Normalizer.normalize(twoterms, true, false, false); // TODO: need to pass parameters. and think obout how to implement stemming and stop word for bi-gram terms
                 if (normalizedStr!=null&& normalizedStr!=""){
-                	bg.put(normalizedStr ,docId.substring(24));	//old: termID.put(currentWord,docId);
                 	addToBgInvertedIndex(normalizedStr ,docId.substring(24));
                 	System.out.println(normalizedStr +"  "+docId.substring(24));
                 	
                 }
-                //sami end
+
                 count = 1;
                 }
                 else {
@@ -233,15 +175,13 @@ public class Index {
     }
 
 
-    
-    
-    
     	public void addToBowInvertedIndex(String termStr, String docStr)
     	{
     		if(!invertedIndex_bow.containsKey(termStr)) // if term not exist in inverted index -->add it
 			{
-				List<Posting> postings=new ArrayList<>();
+				List<Posting> postings=new ArrayList<Posting>();
 				postings.add(new Posting(docStr));
+                if (!postings.isEmpty())
 				invertedIndex_bow.put(termStr, postings);
 				
 			}
@@ -265,7 +205,8 @@ public class Index {
 				{
 					relatedPostings.add(new Posting(docStr));
 				}
-				
+
+                if (!relatedPostings.isEmpty())
 				invertedIndex_bow.put(termStr, relatedPostings);
 				
 				
@@ -278,7 +219,7 @@ public class Index {
     	{
     		if(!invertedIndex_bg.containsKey(termStr)) // if term not exist in inverted index -->add it
 			{
-				List<Posting> postings=new ArrayList<>();
+				List<Posting> postings=new ArrayList<Posting>();
 				postings.add(new Posting(docStr));
 				invertedIndex_bg.put(termStr, postings);
 				
@@ -441,18 +382,5 @@ public class Index {
        
     	}
     
-    	/*
-    	public void writeToFile(String term,String doc)
-    	{
-    		try{
-    			  BufferedWriter bowDoc = new BufferedWriter(new FileWriter("../term_doc.txt",true));
-                  bowDoc.write( term+" "+doc + "\n");  			    	  			    
-  			 
-                  bowDoc.close();
-    		} catch (IOException e) {
-				 System.out.println(" caught a " + e.getClass()
-							+ "\n with message: " + e.getMessage());
-			}
-    	}
-    	*/
+
 }

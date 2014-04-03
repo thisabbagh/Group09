@@ -374,7 +374,7 @@ public class Search {
                else
                  scoreBG();
 
-            printResult(topic);
+                printResult(topic);
            }
 
             Date end = new Date();
