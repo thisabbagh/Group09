@@ -9,11 +9,11 @@ public class Search {
     static final String DIR_TO_BOW_IVERTED_INDEX = "../bow_InvertedIndex.txt";
     static final String DIR_TO_BG_IVERTED_INDEX = "../bg_InvertedIndex.txt";
 
-    final static Map<String,Integer > topic = new HashMap<String,Integer >();
+    static Map<String,Integer > topicMap = new HashMap<String,Integer >();
 
 
-    final static HashMap<String, List<Posting>> invertedIndex_bow = new HashMap<String, List<Posting>>();
-    final static HashMap<String, List<Posting>> invertedIndex_bg = new HashMap<String, List<Posting>>();
+    static HashMap<String, List<Posting>> invertedIndex_bow = new HashMap<String, List<Posting>>();
+    static HashMap<String, List<Posting>> invertedIndex_bg = new HashMap<String, List<Posting>>();
 
 
    static HashMap< Float, String > scoreMap = new HashMap<Float, String>();
@@ -36,7 +36,7 @@ public class Search {
 
             BufferedWriter topicDoc = new BufferedWriter(new FileWriter("../"+ topicNumber +".txt"));
 
-            for (Map.Entry<String, Integer> entry : topic.entrySet()) {
+            for (Map.Entry<String, Integer> entry : topicMap.entrySet()) {
                 topicDoc.write( entry.getKey() +" "+ entry.getValue() + "  \n");
                 //System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
             }
@@ -99,12 +99,12 @@ public class Search {
                 currentWord = tokenString(currentWord);
                 normalizedStr=Normalizer.normalize(currentWord, true, true, true);
                if (normalizedStr != null && !normalizedStr.isEmpty() ){
-                Integer frequency = topic.get(normalizedStr);
+                Integer frequency = topicMap.get(normalizedStr);
                     if (frequency == null){
                         frequency = 1;
-                        topic.put(normalizedStr, frequency);
+                        topicMap.put(normalizedStr, frequency);
                     } else
-                        topic.put(normalizedStr, frequency + 1);
+                        topicMap.put(normalizedStr, frequency + 1);
 
             }
             }  }
@@ -118,12 +118,12 @@ public class Search {
                     twoterms = twoterms + " "+ currentWord;
                     normalizedStr=Normalizer.normalize(twoterms, true, false, false); // TODO: need to pass parameters. and think obout how to implement stemming and stop word for bi-gram terms
                     if (normalizedStr!=null&& normalizedStr!=""){
-                        Integer frequency = topic.get(normalizedStr);
+                        Integer frequency = topicMap.get(normalizedStr);
                         if (frequency == null){
                             frequency = 1;
-                            topic.put(normalizedStr, frequency);
+                            topicMap.put(normalizedStr, frequency);
                         } else
-                            topic.put(normalizedStr, frequency + 1);
+                            topicMap.put(normalizedStr, frequency + 1);
 
                     }
                     count = 1;
@@ -229,12 +229,12 @@ public class Search {
     public static void scoreBOW(){
         //weight term query
         int wtq = 0;
-        float score= 0;
+        float score = 0;
         String docID = "";
         float score_lenght = 0;
         List<Posting> listPosting;
         //For every term in the Topic
-        for (Map.Entry<String, Integer> entry : topic.entrySet()) {
+        for (Map.Entry<String, Integer> entry : topicMap.entrySet()) {
             //if the term is in the invertedIndex
             if (invertedIndex_bow.containsKey(entry.getKey()))   {
 
@@ -247,6 +247,7 @@ public class Search {
                         {
 
                            score = p.getFrequency() * wtq;
+
                            score_lenght = score_lenght + p.getFrequency() ;
                            docID = p.getDocName();
 
@@ -273,7 +274,7 @@ public class Search {
         float score_lenght = 0;
         List<Posting> listPosting;
         //For every term in the Topic
-        for (Map.Entry<String, Integer> entry : topic.entrySet()) {
+        for (Map.Entry<String, Integer> entry : topicMap.entrySet()) {
             //if the term is in the invertedIndex
             if (invertedIndex_bg.containsKey(entry.getKey()))   {
 
@@ -379,6 +380,8 @@ public class Search {
                  scoreBG();
 
                 printResult(topic);
+               topicMap = new HashMap<String,Integer >();
+               scoreMap = new HashMap<Float, String>();
            }
 
             Date end = new Date();
