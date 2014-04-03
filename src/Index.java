@@ -14,7 +14,9 @@ import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
-
+/*
+ * a class responisble for creating inverted index files and structures
+ */
 public class Index {
 
 
@@ -30,9 +32,16 @@ public class Index {
     final static HashMap<String, Integer> docLength = new HashMap<String, Integer>();
 
     private IndexStrategy strategy;
-	public Index(IndexStrategy strg) {
+    boolean doCaseFold;
+    boolean doStopWords;
+    boolean doStemming;
+	public Index(IndexStrategy strg,boolean adoCaseFold,boolean adoStopWords,boolean adoStemming) {
 		
 		strategy=strg;
+		
+	    doCaseFold=adoCaseFold;
+	    doStopWords=adoStopWords;
+	    doStemming=adoStemming;
 
 		final File docDir = new File(DIR_TO_INDEX);
 		if (!docDir.exists() || !docDir.canRead()) {
@@ -42,7 +51,7 @@ public class Index {
 
        Date start = new Date();
             
-            File indexFile=(strategy== IndexStrategy.BAG_OF_WORDS)?new File(DIR_TO_BOW_IVERTED_INDEX):new File(DIR_TO_BG_IVERTED_INDEX) ;
+          /*  File indexFile=(strategy== IndexStrategy.BAG_OF_WORDS)?new File(DIR_TO_BOW_IVERTED_INDEX):new File(DIR_TO_BG_IVERTED_INDEX) ;
             if(indexFile.exists())
             {
                 System.out.println("The inverted index file already exists on file system. reading index from file ...");// to be more efficient as it is requested in assignment spec.
@@ -52,7 +61,7 @@ public class Index {
                 else
                     printInvertedIndex(invertedIndex_bg);
             }
-            else{
+            else{*/
 			
 		try {
                 createIndex(docDir);
@@ -63,12 +72,13 @@ public class Index {
                 	saveInvertedIndex( DIR_TO_BG_IVERTED_INDEX);
 
                 saveDocsLength();
+                saveNormalizationOptions();
                 
 				} catch (IOException e) {
 				System.out.println(" caught a " + e.getClass()
 				+ "\n with message: " + e.getMessage());
 				}
-		} //end of else if(indexFile.exists())
+		//} //end of else if(indexFile.exists())
 		Date end = new Date();
 		System.out.println(end.getTime() - start.getTime() + " total milliseconds");
 		}
@@ -115,7 +125,7 @@ public class Index {
 		String currentLine;
 			while ((currentLine = in.readLine()) != null) {
 					//Delimit words based on whitespace, punctuation, and quotes
-					final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\] \t\n\r\f.,;:!?'"); //sami: I removed w from [^\\w]. because what it does is that it splits based on letter 'w' which is not the thing that you meant, right?
+					final StringTokenizer parser = new StringTokenizer(currentLine, "[_] ([0-9]) [^\\] \t\n\r\f.,;:!?'"); 
 						while (parser.hasMoreTokens()) {
 						 String currentWord = parser.nextToken();
 						 currentWord = tokenString(currentWord);
@@ -125,7 +135,7 @@ public class Index {
 					 		else
 					 			docLength.put(docId.substring(24),docLength.get(docId.substring(24))+1);
 						 
-						 normalizedStr=Normalizer.normalize(currentWord, true, true, true); // TODO: need to pass parameters
+						 normalizedStr=Normalizer.normalize(currentWord,doCaseFold,doStopWords,doStemming); 
 						 if (normalizedStr!=null && normalizedStr!="" ){
 						 		addToBowInvertedIndex(normalizedStr ,docId.substring(24));	
 						 		System.out.println(normalizedStr +"  "+docId.substring(24));
@@ -165,7 +175,7 @@ public class Index {
 		 		else
 		 			docLength.put(docId.substring(24),docLength.get(docId.substring(24))+1);
                 
-                normalizedStr=Normalizer.normalize(twoterms, true, false, false); // TODO: need to pass parameters. and think obout how to implement stemming and stop word for bi-gram terms
+                normalizedStr=Normalizer.normalize(twoterms, doCaseFold,doStopWords,doStemming);
                 if (normalizedStr!=null&& normalizedStr!=""){
                 	addToBgInvertedIndex(normalizedStr ,docId.substring(24));
                 	System.out.println(normalizedStr +"  "+docId.substring(24));
@@ -414,6 +424,28 @@ public class Index {
 							+ "\n with message: " + e.getMessage());
 				}
              
+    	}
+    	
+    	public void saveNormalizationOptions(){
+    		 try {
+        		 BufferedWriter bowDoc = new BufferedWriter(new FileWriter("../NormOptions.txt"));
+        			
+    			   
+    					bowDoc.write(doCaseFold?"true":"false");
+    					bowDoc.write("\n");
+    					
+    					bowDoc.write(doStopWords?"true":"false");
+    					bowDoc.write("\n");
+    					
+    					bowDoc.write(doStemming?"true":"false");
+    					bowDoc.write("\n");
+    			    
+    			    bowDoc.close();
+    			    
+        			} catch (IOException e) {
+        				System.out.println(" caught a " + e.getClass()
+    							+ "\n with message: " + e.getMessage());
+    				}
     	}
     
 

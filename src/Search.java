@@ -2,6 +2,9 @@ import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
 
+/*
+ * a class for searching a topic in a collection of already indexed documents
+ */
 public class Search {
 
 
@@ -19,6 +22,9 @@ public class Search {
 
    static HashMap< String, Float > scoreMap = new HashMap< String, Float >();
 
+   static boolean doCaseFold=false;
+   static boolean doStopWords=false;
+   static boolean doStemming=false;
 
     public Search(String topicNumber , IndexStrategy strategy) {
 
@@ -98,7 +104,7 @@ public class Search {
             while (parser.hasMoreTokens()) {
                 String currentWord = parser.nextToken();
                 currentWord = tokenString(currentWord);
-                normalizedStr=Normalizer.normalize(currentWord, true, true, true);//TODO
+                normalizedStr=Normalizer.normalize(currentWord,doCaseFold,doStopWords,doStemming);
                if (normalizedStr != null && !normalizedStr.isEmpty() ){
                 Integer frequency = topicMap.get(normalizedStr);
                     if (frequency == null){
@@ -117,7 +123,7 @@ public class Search {
                     String  currentWord = parser.nextToken();
                     currentWord = tokenString(currentWord);
                     twoterms = twoterms + " "+ currentWord;
-                    normalizedStr=Normalizer.normalize(twoterms, true, false, false); // TODO: need to pass parameters. and think obout how to implement stemming and stop word for bi-gram terms
+                    normalizedStr=Normalizer.normalize(twoterms, doCaseFold,doStopWords,doStemming);
                     if (normalizedStr!=null&& normalizedStr!=""){
                         Integer frequency = topicMap.get(normalizedStr);
                         if (frequency == null){
@@ -153,8 +159,6 @@ public class Search {
     	 */
     public static void readInvertedIndexFile(IndexStrategy strategy)
     {
-    	readDocsLengthFile();
-    	
         String fileName=(strategy== IndexStrategy.BAG_OF_WORDS)?DIR_TO_BOW_IVERTED_INDEX:DIR_TO_BG_IVERTED_INDEX;
 
         try {
@@ -335,7 +339,11 @@ public class Search {
 
     public static void main(String[] args) {
 
+    	readDocsLengthFile();
+    	readNormOptionsFile();
+    	
         Date start = new Date();
+        
 
         IndexStrategy strategy = IndexStrategy.BI_GRAM;
 
@@ -366,7 +374,8 @@ public class Search {
                 System.exit(0);
                 break;
             default:
-                System.out.println("Please enter a valid option.");
+            	 System.out.println("not a valid option. Exiting ...");
+                 System.exit(0);
                 break;
 
         }
@@ -470,8 +479,9 @@ public class Search {
         }
         
         
-    
-        
+    /*
+     * sorts the map based on its values and in descending order
+     */      
         static <K,V extends Comparable<? super V>> 
         List<Entry<K, V>> entriesSortedByValuesDesc(Map<K,V> map) {
 
@@ -489,4 +499,25 @@ Collections.sort(sortedEntries,
 return sortedEntries;
 }
 
+        
+        public static void readNormOptionsFile()
+        {
+
+        	String currentLine="";
+            try {
+                BufferedReader idxDoc = new BufferedReader(new FileReader("../NormOptions.txt"));
+                doCaseFold=((currentLine = idxDoc.readLine()) != null)? Boolean.parseBoolean(currentLine):false;
+            	doStopWords=((currentLine = idxDoc.readLine()) != null)? Boolean.parseBoolean(currentLine):false;
+            	doStemming=((currentLine = idxDoc.readLine()) != null)? Boolean.parseBoolean(currentLine):false;
+
+            idxDoc.close();
+            }
+        catch (IOException e) {
+            System.out.println(" caught a " + e.getClass()
+                    + "\n with message: " + e.getMessage());
+        }
+            
+            /*System.out.println("reading  norm aptions from program...");            
+            	System.out.println(doCaseFold+" "+doStopWords+" "+doStemming);*/
+        }
 }

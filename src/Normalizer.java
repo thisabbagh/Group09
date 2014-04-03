@@ -1,7 +1,9 @@
 import java.util.Arrays;
 import java.util.List;
 
-
+/*
+ * a class for doing vocabulary normalization (case folding, removing stop words, stemming)
+ */
 public class Normalizer {
 	
 	// stop word list, retrieved from "Journal of Machine Learning Research" http://jmlr.org/papers/volume5/lewis04a/a11-smart-stop-list/english.stop
@@ -63,7 +65,7 @@ public class Normalizer {
 	
 	  public static void main(String[] args)
 	   {
-		  System.out.println(stopWordsRemover("a"));
+		  System.out.println(stopWordsRemover("about us"));
 	   }
 	
 	
