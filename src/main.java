@@ -1,3 +1,5 @@
+import Lucene.IndexLucene;
+
 import java.util.Scanner;
 
 /*
@@ -6,7 +8,12 @@ import java.util.Scanner;
 public class main {
 
 	public static void main(String[] args) {
-   
+
+        IndexLucene createindex = new IndexLucene();
+
+        System.out.println("Lucene");
+
+      /*
 		IndexStrategy strategy = IndexStrategy.BI_GRAM;
 		boolean doCaseFold=false;
 		boolean doStopWords=false;
@@ -82,7 +89,7 @@ public class main {
         
         
 		//call indexing function with user defined parameters
-	      Index i = new Index(strategy, doCaseFold, doStopWords, doStemming);
+	      Index i = new Index(strategy, doCaseFold, doStopWords, doStemming);          */
 	
 	}
 
