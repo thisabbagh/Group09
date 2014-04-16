@@ -26,7 +26,7 @@ public class IndexLucene {
 
 
         try {
-          Directory dir = FSDirectory.open(new File("index"));
+          Directory dir = FSDirectory.open(new File("indexlucene"));
 
 
 
