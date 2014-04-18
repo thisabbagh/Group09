@@ -22,6 +22,9 @@ public class Search {
 
    static HashMap< String, Float > scoreMap = new HashMap< String, Float >();
 
+
+   static ArrayList<String> listQuery = new ArrayList<String>();
+
    static boolean doCaseFold=false;
    static boolean doStopWords=false;
    static boolean doStemming=false;
@@ -330,7 +333,8 @@ public class Search {
 			rank = rank +1;
 			Entry<String,Float> e=sortedRes.get(i);
 			System.out.println(topic + " Q0 "+ e.getKey() + " " + rank + " " +  String.format("%.7f",e.getValue())  + " group09_experiment1 "  );
-		    if (i==99) //returning subset of 100 results
+		    listQuery.add(topic + " Q0 "+ e.getKey() + " " + rank + " " +  String.format("%.7f",e.getValue())  + " group09_experiment1 "  );
+            if (i==99) //returning subset of 100 results
 		    	break;
 				}
 
@@ -387,9 +391,30 @@ public class Search {
 
         scan = new Scanner(System.in);
 
-        String topic = scan.next();
+      //  String topic = scan.next();
+        ArrayList<String> topicList = new ArrayList<String>();
 
-        while (!topic.equals("quit")){
+        topicList.add("topic1");
+        topicList.add("topic10");
+        topicList.add("topic11");
+        topicList.add("topic13");
+        topicList.add("topic14");
+        topicList.add("topic15");
+        topicList.add("topic16");
+        topicList.add("topic17");
+        topicList.add("topic18");
+        topicList.add("topic19");
+        topicList.add("topic2");
+        topicList.add("topic3");
+        topicList.add("topic4");
+        topicList.add("topic5");
+        topicList.add("topic6");
+        topicList.add("topic7");
+        topicList.add("topic9");
+
+        for(String topic : topicList)         {
+
+       // while (!topic.equals("quit")){
 
             Search i = new Search(topic,strategy);
 
@@ -404,7 +429,7 @@ public class Search {
                scoreMap = new HashMap<String, Float>();
            }
 
-            Date end = new Date();
+         /*   Date end = new Date();
             System.out.println(end.getTime() - start.getTime() + " total milliseconds");
 
             System.out.println("-----------------------------------------------------");
@@ -415,11 +440,13 @@ public class Search {
 
             scan = new Scanner(System.in);
 
-            topic = scan.next();
+            topic = scan.next();               */
 
 
+      //  }
         }
 
+        printQuery();
 
 
     }
@@ -445,7 +472,28 @@ public class Search {
 
 
         }
-        
+
+
+    public static void printQuery(){
+
+        try {
+
+            BufferedWriter topicDoc = null;
+
+            topicDoc = new BufferedWriter(new FileWriter("../queryResult.txt"));
+
+            for (String print : listQuery) {
+                topicDoc.write(print + "\n");
+            }
+
+            topicDoc.close();
+
+
+         } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
         
         public static void readDocsLengthFile()
         {
