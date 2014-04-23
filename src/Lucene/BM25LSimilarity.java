@@ -45,6 +45,7 @@ public class BM25LSimilarity extends Similarity {
    * <ul>
    *   <li>{@code k1 = 1.2},
    *   <li>{@code b = 0.75}.</li>
+   *   <li>{@code d = 0.5}.</li>
    * </ul>
    */
   public BM25LSimilarity() {
