@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -33,11 +34,41 @@ public class SearchLucene {
 
 	static ArrayList<String> listQuery = new ArrayList<String>();
 	
-	static SimilarityMode MODE= SimilarityMode.BM25L; // change this line to get results for different similarity score calculations
+	static SimilarityMode MODE; // change this line to get results for different similarity score calculations
 	
 	
 	public static void main(String[] args) throws Exception {
 
+        System.out.println("Please select the Similarty Mode: ");
+
+        System.out.println("1. Lucene Default");
+        System.out.println("2. BM25");
+        System.out.println("3. BM25L");
+
+        Scanner scan = new Scanner(System.in);
+        int input = scan.nextInt();
+
+        //selects the option that the user input
+        switch (input)
+        {
+            case 1:
+                System.out.println("Lucene Default");
+                MODE= SimilarityMode.DEFAULT;
+                break;
+            case 2:
+                System.out.println("BM25");
+                MODE= SimilarityMode.BM25;
+                break;
+            case 3:
+                System.out.println("BM25L!");
+                MODE= SimilarityMode.BM25L;
+                break;
+            default:
+                System.out.println("not a valid option. Exiting ...");
+                System.exit(0);
+                break;
+
+        }
 
 		String index = "indexlucene";
 		String field = "contents";

@@ -15,11 +15,10 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
-import org.apache.pdfbox.searchengine.lucene.LucenePDFDocument;
 
 public class IndexLucene {
 
-	static final File INDEX_DIR = new File("indexlucene"); //\\test
+	static final File INDEX_DIR = new File("indexlucene");
 	static final String DIR_TO_INDEX = "../20_newsgroups_subset";
 
 	public IndexLucene() {
@@ -42,8 +41,6 @@ public class IndexLucene {
 		Date start = new Date();
 
             Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_47);
-		//	IndexWriter writer = new IndexWriter(FSDirectory.open(INDEX_DIR),
-          //          new IndexWriterConfig(Version.LUCENE_47, analyzer));
 
 			   IndexWriterConfig indexWriterConfig = new IndexWriterConfig(Version.LUCENE_47, analyzer);
             indexWriterConfig.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
@@ -52,7 +49,6 @@ public class IndexLucene {
 		    System.out.println("Indexing to directory '" + INDEX_DIR + "'...");
 			indexDocs(writer, docDir);
 			System.out.println("Optimizing...");
-			//writer.optimize();
 			writer.close();
 
 			Date end = new Date();
@@ -133,50 +129,7 @@ public class IndexLucene {
                 }
             }
         }
-        /*FileInputStream fis;
-        try {
-            fis = new FileInputStream(file);
-        } catch (FileNotFoundException fnfe) {
-            return;
-        }
 
-        Document doc = new Document();
-        Field pathField = new StringField("path", file.getPath(), Field.Store.YES);
-        doc.add(pathField);
-
-        doc.add(new LongField("modified", file.lastModified(), Field.Store.NO));
-
-        doc.add(new TextField("contents", new BufferedReader(new InputStreamReader(fis, "UTF-8"))));
-
-        if (file.canRead()) {
-			if (file.isDirectory()) {
-				String[] files = file.list();
-				if (files != null) {
-					for (int i = 0; i < files.length; i++) {
-						indexDocs(writer, new File(file, files[i]));
-					}
-				}
-			} else {
-				System.out.println("adding " + file);
-				try {
-					if (!file.getPath().endsWith(".svn-base")) {
-						if (file.getPath().endsWith(".pdf")) {
-							addPDFToIndex(writer, file);
-						} else {
-							writer.addDocument(doc);
-						}
-					}
-				} catch (FileNotFoundException fnfe) {
-
-				}
-			}
-		}                */
-	}
-
-	public static void addPDFToIndex(IndexWriter openIndex, File pdfFile)
-			throws IOException {
-		Document document = LucenePDFDocument.getDocument(pdfFile);
-		openIndex.addDocument(document);
 	}
 
     public static void main(String[] args) throws Exception {
