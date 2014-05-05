@@ -97,15 +97,6 @@ public class IndexLucene {
                     Field pathField = new StringField("path", file.getPath(), Field.Store.YES);
                     doc.add(pathField);
 
-                    // Add the last modified date of the file a field named "modified".
-                    // Use a LongField that is indexed (i.e. efficiently filterable with
-                    // NumericRangeFilter).  This indexes to milli-second resolution, which
-                    // is often too fine.  You could instead create a number based on
-                    // year/month/day/hour/minutes/seconds, down the resolution you require.
-                    // For example the long value 2011021714 would mean
-                    // February 17, 2011, 2-3 PM.
-                    doc.add(new LongField("modified", file.lastModified(), Field.Store.NO));
-
                     // Add the contents of the file to a field named "contents".  Specify a Reader,
                     // so that the text of the file is tokenized and indexed, but not stored.
                     // Note that FileReader expects the file to be in UTF-8 encoding.
