@@ -1,0 +1,42 @@
+--------------classical--------------
+similar: 
+classical_artist_15_album_2_track_4.mp3 (Q1)
+classical_artist_15_album_2_track_6
+
+dissimilar: 
+classical_artist_10_album_1_track_2 (Q2)
+classical_artist_37_album_1_track_6
+
+--------------electronic--------------
+similar:
+electronic_1-dezert (Q3)
+electronic_1-push.mp3
+
+dissimilar:
+electronic_8-ehaw (Q4)
+electronic_8-love_peace_and_ecstasy_(138_bpm_remix)
+
+--------------jazz_blues--------------
+similar:
+jazz_blues_18-slide_boogie (Q5)
+jazz_blues_19-cause_you_been_messin_'round
+
+dissimilar:
+jazz_blues_3-my_momma_told_me (Q6)
+jazz_blues_artist_72_album_1_track_1
+
+--------------metal_punk--------------
+similar:
+
+dissimilar:
+
+--------------rock_pop--------------
+similar:
+
+dissimilar:
+
+--------------world--------------
+similar:
+
+dissimilar:
+
