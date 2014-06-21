@@ -1,6 +1,6 @@
 --------------classical--------------
 similar: 
-classical_artist_15_album_2_track_4.mp3 (Q1)
+classical_artist_15_album_2_track_4 (Q1)
 classical_artist_15_album_2_track_6
 
 dissimilar: 
@@ -27,16 +27,19 @@ jazz_blues_artist_72_album_1_track_1
 
 --------------metal_punk--------------
 similar:
+metal_punk_6-in_my_livid_eyes
+metal_punk_4-what's_wrong_with_my_footm
 
 dissimilar:
-
+metal_punk_7-heavenly_rain
+metal_punk_artist_79_album_1_track_2
 --------------rock_pop--------------
 similar:
+rock_pop_3-air_chair
+rock_pop_11-planet
 
 dissimilar:
+rock_pop_12-sympathetic_stranger
+rock_pop_2-eli
 
---------------world--------------
-similar:
-
-dissimilar:
 
